@@ -11,7 +11,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "test-perf": "mocha --compilers js:babel-core/register perf/**/*.test.mjs",
+    "test-perf": "mocha --require ts-node/register perf/**/*.test.ts",
+    "debug-perf": "mocha --inspect-brk --require ts-node/register perf/**/*.test.ts",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -24,8 +25,19 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "babel-core": "^6.26.3",
+    "@types/chai": "^4.1.7",
+    "@types/es6-shim": "^0.31.37",
+    "@types/image-size": "0.0.29",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.12.0",
+    "@types/pixelmatch": "^4.0.0",
+    "@types/puppeteer": "^1.9.1",
     "chai": "^4.2.0",
-    "puppeteer": "^1.9.0"
+    "image-size": "^0.6.3",
+    "pixelmatch": "^4.0.2",
+    "puppeteer": "^1.9.0",
+    "source-map-support": "^0.5.9",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.1.3"
   }
 }
