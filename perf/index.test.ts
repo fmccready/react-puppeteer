@@ -4,20 +4,11 @@ import { getScreenshot, match, getDimensions } from "./index";
 
 debugger;
 describe("puppeteer", function() {
-  this.timeout(15000);
-  it("creates an image", function(done) {
-    getScreenshot()
-      .then(function() {
-        assert(fs.existsSync("./perf/results/test.png"));
-        done();
-      })
-      .catch(function() {
-        assert(false);
-        done();
-      });
-  });
-  it("gives the image a name", function(done) {
-    const name = "test-name";
+  this.timeout(35000);
+  const names = ["image1", "image2"];
+  const name = names[0];
+
+  it("creates an image with a name", function(done) {
     getScreenshot(name)
       .then(function() {
         assert(fs.existsSync(`./perf/results/${name}.png`));
@@ -28,15 +19,24 @@ describe("puppeteer", function() {
         done();
       });
   });
-  it("tells you if two images are the same", function() {
-    const names = ["image1", "image2"];
-    names.forEach(getScreenshot);
-    assert(
-      match(`./perf/results/${names[0]}.png`, `./perf/results/${names[1]}.png`)
-    );
+
+  it("tells you if two images are the same", function(done) {
+    Promise.all(names.map(getScreenshot)).then(function() {
+      assert(
+        match(
+          `./perf/results/${names[0]}.png`,
+          `./perf/results/${names[1]}.png`
+        )
+      );
+      done();
+    });
   });
-  it("tells you the dimensions of an image", function() {
-    const dimensions = getDimensions("./perf/results/test.png");
-    assert(dimensions.width && dimensions.height && dimensions.type);
+
+  it("tells you the dimensions of an image", function(done) {
+    getScreenshot(name).then(function() {
+      const dimensions = getDimensions(`./perf/results/${name}.png`);
+      assert(dimensions.width && dimensions.height && dimensions.type);
+      done();
+    });
   });
 });
