@@ -2,6 +2,7 @@ import { launch } from "puppeteer";
 import fs from "fs";
 import pixelmatch from "pixelmatch";
 import imageSize from "image-size";
+import Rx from "rxjs";
 
 interface ImageInfo {
   width: number;
@@ -15,7 +16,7 @@ interface Image {
   dimensions: ImageInfo;
 }
 
-function getImage(filename: string) {
+export function readImage(filename: string) {
   const img = fs.readFileSync(filename);
   return {
     src: filename,
@@ -23,26 +24,30 @@ function getImage(filename: string) {
     dimensions: imageSize(img)
   };
 }
+export function launchBrowserPage() {
+  return Rx.Observable.fromPromise(launch());
+}
 
-export async function getScreenshot(name = "test") {
+export async function getScreenshot(path = "./perf/results/default.png") {
   const browser = await launch();
   const page = await browser.newPage();
   await page.goto("http://localhost:3000");
-  await page.screenshot({ path: `./perf/results/${name}.png` });
+  await page.screenshot({ path: path });
 
   await browser.close();
 }
 
 export function match(image1: string, image2: string) {
-  const img1 = fs.readFileSync(image1);
-  const img2 = fs.readFileSync(image2);
-  const results = pixelmatch(img1, img2, null, 800, 600);
+  const img1 = readImage(image1);
+  const img2 = readImage(image2);
+  const results = pixelmatch(
+    img1.data,
+    img2.data,
+    null,
+    img1.dimensions.width,
+    img2.dimensions.height
+  );
   if (results === 0) return true;
-}
-
-export function getDimensions(image: string) {
-  const img = fs.readFileSync(image);
-  return imageSize(img);
 }
 
 /*

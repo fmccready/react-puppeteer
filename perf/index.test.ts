@@ -1,42 +1,40 @@
 import fs from "fs";
 import { assert } from "chai";
-import { getScreenshot, match, getDimensions } from "./index";
+import * as perf from "./index";
 
 debugger;
 describe("puppeteer", function() {
-  this.timeout(35000);
-  const names = ["image1", "image2"];
-  const name = names[0];
+  this.timeout(60000);
+  const paths = ["./perf/results/image1.png", "./perf/results/image2.png"];
+  const testImage = "./perf/fixtures/test-image.png";
 
   it("creates an image with a name", function(done) {
-    getScreenshot(name)
+    perf
+      .getScreenshot(paths[0])
       .then(function() {
-        assert(fs.existsSync(`./perf/results/${name}.png`));
+        assert(fs.existsSync(paths[0]));
         done();
       })
-      .catch(function() {
-        assert(false);
+      .catch(function(err) {
+        console.log(`error: ${err}`);
         done();
       });
   });
 
+  it("reads an image from disk", function() {
+    const image = perf.readImage(testImage);
+    assert(image.src === testImage);
+  });
+
   it("tells you if two images are the same", function(done) {
-    Promise.all(names.map(getScreenshot)).then(function() {
-      assert(
-        match(
-          `./perf/results/${names[0]}.png`,
-          `./perf/results/${names[1]}.png`
-        )
-      );
+    Promise.all(paths.map(perf.getScreenshot)).then(function() {
+      assert(perf.match(paths[0], paths[1]));
       done();
     });
   });
 
-  it("tells you the dimensions of an image", function(done) {
-    getScreenshot(name).then(function() {
-      const dimensions = getDimensions(`./perf/results/${name}.png`);
-      assert(dimensions.width && dimensions.height && dimensions.type);
-      done();
-    });
+  it("tells you the dimensions of an image", function() {
+    const dimensions = perf.readImage(testImage).dimensions;
+    assert(dimensions.width && dimensions.height && dimensions.type);
   });
 });
