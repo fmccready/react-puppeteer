@@ -1,8 +1,8 @@
-import { launch } from "puppeteer";
+import { launch, Browser, Page } from "puppeteer";
 import fs from "fs";
 import pixelmatch from "pixelmatch";
 import imageSize from "image-size";
-import Rx from "rxjs";
+import * as Rx from "rxjs";
 
 interface ImageInfo {
   width: number;
@@ -24,8 +24,20 @@ export function readImage(filename: string) {
     dimensions: imageSize(img)
   };
 }
-export function launchBrowserPage() {
-  return Rx.Observable.fromPromise(launch());
+export function launchBrowser() {
+  return Rx.from(launch());
+}
+
+export function newPage(browser: Browser) {
+  return Rx.from(browser.newPage());
+}
+
+export function takeScreenshot(page: Page, path: string) {
+  return Rx.from(page.screenshot({ path: path }));
+}
+
+export function navigate(page: Page, url: string) {
+  return Rx.from(page.goto(url));
 }
 
 export async function getScreenshot(path = "./perf/results/default.png") {

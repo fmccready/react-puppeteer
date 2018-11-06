@@ -1,9 +1,46 @@
 import fs from "fs";
 import { assert } from "chai";
 import * as perf from "./index";
+import * as Rx from "rxjs";
 
 debugger;
-describe("puppeteer", function() {
+
+describe("Browser", function() {
+  this.timeout(30000);
+  it("can open a browser", function(done) {
+    perf.launchBrowser().subscribe(function(browser) {
+      assert(browser);
+      browser.close();
+      done();
+    });
+  });
+
+  it("can open a new page in a browser", function(done) {
+    perf.launchBrowser().subscribe(function(browser) {
+      perf.newPage(browser).subscribe(function(page) {
+        assert(page);
+        browser.close();
+        done();
+      });
+    });
+  });
+
+  it("can navigate to a new page", function(done) {
+    perf.launchBrowser().subscribe(function(browser) {
+      perf.newPage(browser).subscribe(function(page) {
+        perf
+          .navigate(page, "http://localhost:3000")
+          .subscribe(function(response) {
+            assert(response);
+            browser.close();
+            done();
+          });
+      });
+    });
+  });
+});
+
+describe("Images", function() {
   this.timeout(60000);
   const paths = ["./perf/results/image1.png", "./perf/results/image2.png"];
   const testImage = "./perf/fixtures/test-image.png";
