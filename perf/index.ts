@@ -3,6 +3,7 @@ import fs from "fs";
 import pixelmatch from "pixelmatch";
 import imageSize from "image-size";
 import * as Rx from "rxjs";
+import { equals } from "ramda";
 
 interface ImageInfo {
   width: number;
@@ -11,19 +12,27 @@ interface ImageInfo {
 }
 
 interface Image {
-  src: string;
-  data: Buffer;
+  src?: string;
+  buffer: Buffer;
   dimensions: ImageInfo;
 }
 
-export function readImage(filename: string) {
+export function ImageFile(filename: string): Image {
   const img = fs.readFileSync(filename);
   return {
     src: filename,
-    data: fs.readFileSync(filename),
+    buffer: img,
     dimensions: imageSize(img)
   };
 }
+
+export function ImageBuffer(buffer: Buffer): Image {
+  return {
+    buffer: buffer,
+    dimensions: imageSize(buffer)
+  };
+}
+
 export function launchBrowser() {
   return Rx.from(launch());
 }
@@ -31,6 +40,14 @@ export function launchBrowser() {
 export function newPage(browser: Browser) {
   return Rx.from(browser.newPage());
 }
+
+let screenshots$ = new Rx.Subject();
+
+export function screenshots() {
+  return Rx.from(screenshots$);
+}
+
+function shot() {}
 
 export function takeScreenshot(page: Page, path: string) {
   return Rx.from(page.screenshot({ path: path }));
@@ -50,14 +67,29 @@ export async function getScreenshot(path = "./perf/results/default.png") {
 }
 
 export function match(image1: string, image2: string) {
-  const img1 = readImage(image1);
-  const img2 = readImage(image2);
+  const img1 = ImageFile(image1);
+  const img2 = ImageFile(image2);
+  if (!equals(img1.dimensions, img2.dimensions)) return;
   const results = pixelmatch(
-    img1.data,
-    img2.data,
+    img1.buffer,
+    img2.buffer,
     null,
     img1.dimensions.width,
     img2.dimensions.height
+  );
+  if (results === 0) return true;
+}
+
+export function bufferMatch(image1: Buffer, image2: Buffer) {
+  const img1 = ImageBuffer(image1);
+  const img2 = ImageBuffer(image2);
+  if (!equals(img1.dimensions, img2.dimensions)) return;
+  const results = pixelmatch(
+    image1,
+    image2,
+    null,
+    img1.dimensions.width,
+    img1.dimensions.height
   );
   if (results === 0) return true;
 }
